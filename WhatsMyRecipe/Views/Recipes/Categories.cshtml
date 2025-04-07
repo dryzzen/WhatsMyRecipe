@@ -1,0 +1,20 @@
+﻿    @model List<WhatsMyRecipe.Models.Category>
+    @{
+        ViewData["Title"] = "Categories";
+    }
+
+    <h2>What's My Recipe - Categories</h2>
+    <div class="row">
+        @foreach (var category in Model)
+        {
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                <img src="~/images/@(category.Id.ToString().ToLower()).jpg" class="card-img-top" alt="@category.Name" />
+                <div class="card-body">
+                        <h5 class="card-title">@category</h5>
+                        <a class="btn btn-primary" asp-action="UserRecipesByCategory" asp-route-category="@category">View Recipes</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
