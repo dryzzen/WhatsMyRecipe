@@ -7,12 +7,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using WhatsMyRecipe.Data;
 using WhatsMyRecipe.Models;
 using WhatsMyRecipe.ViewModels;
-using static WhatsMyRecipe.Models.Recipe;
-
+using Microsoft.EntityFrameworkCore;
 namespace WhatsMyRecipe.Controllers
 {
     [Authorize]
@@ -107,61 +105,76 @@ namespace WhatsMyRecipe.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateRecipe(CreateRecipeViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                var recipe = new Recipe
-                {
-                    Title = model.Title,
-                    Description = model.Description,
-                    Ingredients = model.Ingredients,
-                    Instructions = model.Instructions,
-                    CategoryId = model.CategoryId,
-                    UserId = _userManager.GetUserId(User)
-                };
-
-                // Handle image upload
-                if (model.RecipeImage != null && model.RecipeImage.Length > 0)
-                {
-                    var uploadsFolder = Path.Combine("wwwroot", "images", "recipes");
-                    if (!Directory.Exists(uploadsFolder))
-                        Directory.CreateDirectory(uploadsFolder);
-
-                    var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(model.RecipeImage.FileName);
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await model.RecipeImage.CopyToAsync(fileStream);
-                    }
-
-                    recipe.Image = "/images/recipes/" + uniqueFileName;
-                }
-
-                try
-                {
-                    var changes = await _context.SaveChangesAsync();
-                    Console.WriteLine($"Saved changes: {changes} rows affected");
-                    Console.WriteLine($"New recipe ID: {recipe.Id}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error saving recipe: {ex.Message}");
-                  
-                }
-
-                return RedirectToAction("Index", "Recipes", new { categoryId = recipe.CategoryId });
-            }
-
-            // Reload categories if validation fails
             var userId = _userManager.GetUserId(User);
             var categories = await _context.Categories
                 .Where(c => !c.IsCustom || c.UserId == userId)
                 .ToListAsync();
             model.Categories = new SelectList(categories, "Id", "Name");
 
-            return View(model);
-        }
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
+            var recipe = new Recipe
+            {
+                Title = model.Title,
+                Description = model.Description,
+                Ingredients = model.Ingredients,
+                Instructions = model.Instructions,
+                CategoryId = model.CategoryId,
+                UserId = userId,
+            };
+
+            // Handle image upload
+            if (model.RecipeImage != null)
+            {
+                try
+                {
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    var fileExtension = Path.GetExtension(model.RecipeImage.FileName).ToLower();
+
+                    if (!allowedExtensions.Contains(fileExtension))
+                    {
+                        ModelState.AddModelError("RecipeImage", "Only JPG, PNG or GIF images are allowed");
+                        return View(model);
+                    }
+
+                    var uploadsFolder = Path.Combine("wwwroot", "images", "recipes");
+                    Directory.CreateDirectory(uploadsFolder);
+
+                    var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await model.RecipeImage.CopyToAsync(stream);
+                    }
+
+                    recipe.Image = $"/images/recipes/{fileName}";
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Image upload failed: {ex.Message}");
+                    ModelState.AddModelError("RecipeImage", "Error uploading image");
+                    return View(model);
+                }
+            }
+
+            try
+            {
+                _context.Recipes.Add(recipe);
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction("Index", "Recipes", new { categoryId = recipe.CategoryId });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving recipe: {ex.Message}");
+                ModelState.AddModelError("", "An error occurred while saving the recipe.");
+                return View(model);
+            }
+        }
 
 
 
