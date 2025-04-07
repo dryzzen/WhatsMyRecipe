@@ -1,0 +1,34 @@
+﻿@model IEnumerable<Category>
+
+<h1>Recipe Categories</h1>
+
+<div class="category-container">
+    @foreach (var category in Model)
+    {
+        <div class="category-card">
+            <a asp-controller="Recipes" asp-action="Index" asp-route-categoryId="@category.Id">
+                @if (!string.IsNullOrEmpty(category.Image))
+                {
+                    <img src="@category.Image" alt="@category.Name" class="category-image" />
+                }
+                else
+                {
+                    <div class="category-placeholder">
+                        <span>@category.Name.First()</span>
+                    </div>
+                }
+                <h3>@category.Name</h3>
+                @if (category.IsCustom)
+                {
+                    <small class="custom-badge">Custom</small>
+                }
+            </a>
+        </div>
+    }
+</div>
+
+<div class="text-center mt-4">
+    <a asp-action="CreateCategory" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Add New Category
+    </a>
+</div>

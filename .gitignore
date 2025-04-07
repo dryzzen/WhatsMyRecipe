@@ -1,0 +1,11 @@
+# ASP.NET Core
+bin/
+obj/
+appsettings.Development.json
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Node.js
+node_modules/

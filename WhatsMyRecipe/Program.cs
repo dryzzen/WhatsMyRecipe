@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WhatsMyRecipe.Data;
@@ -12,7 +13,18 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddRazorPagesOptions(options => {
+        options.Conventions.AuthorizeFolder("/Recipes");
+        options.Conventions.AuthorizeFolder("/Categories");
+    });
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+});
+
 
 var app = builder.Build();
 
@@ -33,11 +45,20 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+var cookiePolicyOptions = new CookiePolicyOptions
+{
+    MinimumSameSitePolicy = SameSiteMode.Unspecified,
+    HttpOnly = HttpOnlyPolicy.Always,
+    Secure = CookieSecurePolicy.None // Use "None" for development, "Always" for production
+};
+app.UseCookiePolicy(cookiePolicyOptions);
+
+
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Category}/{action=Index}/{id?}");
 app.MapRazorPages();
 
 app.Run();

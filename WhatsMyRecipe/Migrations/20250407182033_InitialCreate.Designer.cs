@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WhatsMyRecipe.Data;
 
@@ -11,9 +12,11 @@ using WhatsMyRecipe.Data;
 namespace WhatsMyRecipe.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250407182033_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -232,9 +235,6 @@ namespace WhatsMyRecipe.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsCustom")
                         .HasColumnType("bit");
 
@@ -255,42 +255,36 @@ namespace WhatsMyRecipe.Migrations
                         new
                         {
                             Id = 1,
-                            Image = "/images/categories/salad.jpg",
                             IsCustom = false,
                             Name = "Salad"
                         },
                         new
                         {
                             Id = 2,
-                            Image = "/images/categories/meat.jpg",
                             IsCustom = false,
                             Name = "Meat"
                         },
                         new
                         {
                             Id = 3,
-                            Image = "/images/categories/dessert.jpg",
                             IsCustom = false,
                             Name = "Dessert"
                         },
                         new
                         {
                             Id = 4,
-                            Image = "/images/categories/drink.jpg",
                             IsCustom = false,
                             Name = "Drink"
                         },
                         new
                         {
                             Id = 5,
-                            Image = "/images/categories/appetizers.jpg",
                             IsCustom = false,
                             Name = "Appetizer"
                         },
                         new
                         {
                             Id = 6,
-                            Image = "/images/categories/vegan.jpg",
                             IsCustom = false,
                             Name = "Vegan"
                         });

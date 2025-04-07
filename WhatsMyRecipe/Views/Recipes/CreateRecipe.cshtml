@@ -1,0 +1,77 @@
+﻿@model WhatsMyRecipe.ViewModels.CreateRecipeViewModel
+
+@{
+    ViewData["Title"] = "Create Recipe";
+}
+
+<h1>Create New Recipe</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="CreateRecipe" asp-controller="Recipes" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group mb-3">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Description" class="control-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Ingredients" class="control-label"></label>
+                <textarea asp-for="Ingredients" class="form-control" rows="5"></textarea>
+                <span asp-validation-for="Ingredients" class="text-danger"></span>
+                <small class="text-muted">Enter each ingredient on a new line</small>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Instructions" class="control-label"></label>
+                <textarea asp-for="Instructions" class="form-control" rows="5"></textarea>
+                <span asp-validation-for="Instructions" class="text-danger"></span>
+                <small class="text-muted">Enter each step on a new line</small>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="CategoryId" class="control-label">Category</label>
+                <select asp-for="CategoryId" asp-items="Model.Categories" class="form-control">
+                    <option value="">-- Select Category --</option>
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="RecipeImage" class="control-label">Recipe Image</label>
+                <input asp-for="RecipeImage" class="form-control" type="file" accept="image/*" />
+                <span asp-validation-for="RecipeImage" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Create Recipe</button>
+                <a asp-controller="Category" asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Debugging - log form submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            console.log('Form submitted');
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                console.log('Form is invalid');
+            }
+        });
+    </script>
+}

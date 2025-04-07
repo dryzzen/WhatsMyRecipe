@@ -11,12 +11,6 @@
     <h1>@ViewBag.CategoryName Recipes</h1>
 </div>
 
-<div class="text-end mb-3">
-    <a asp-action="CreateRecipe" class="btn btn-success">
-        <i class="bi bi-plus-circle"></i> Add New Recipe
-    </a>
-</div>
-
 <div class="row">
     @foreach (var recipe in Model)
     {
@@ -28,7 +22,6 @@
                 }
                 <div class="card-body">
                     <h5 class="card-title">@recipe.Title</h5>
-                    <p class="card-text">@recipe.Description</p>
                     <a asp-action="Details" asp-route-id="@recipe.Id" class="btn btn-primary">View Recipe</a>
                 </div>
             </div>
@@ -36,6 +29,4 @@
     }
 </div>
 
-<a asp-controller="Category" asp-action="Index" class="btn btn-secondary">
-    <i class="bi bi-arrow-left"></i> Back to Categories
-</a>
+<a asp-action="Index" class="btn btn-secondary">Back to Categories</a>

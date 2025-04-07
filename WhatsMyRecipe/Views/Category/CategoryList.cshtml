@@ -1,0 +1,25 @@
+﻿@model IEnumerable<Category>
+
+<h1>Recipe Categories</h1>
+
+<div class="category-container">
+    @foreach (var category in Model)
+    {
+        <a asp-action="Index" asp-route-categoryId="@category.Id" class="category-card">
+            <h3>@category.Name</h3>
+        </a>
+    }
+</div>
+
+@if (User.Identity.IsAuthenticated)
+{
+    <div class="add-category mt-4">
+        <h4>Add Custom Category</h4>
+        <form asp-action="CreateCategory" method="post">
+            <div class="input-group">
+                <input type="text" name="categoryName" class="form-control" placeholder="New category name" required />
+                <button type="submit" class="btn btn-primary">Add</button>
+            </div>
+        </form>
+    </div>
+}
