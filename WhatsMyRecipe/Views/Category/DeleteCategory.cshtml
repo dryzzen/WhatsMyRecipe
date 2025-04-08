@@ -1,0 +1,66 @@
+﻿@model Category
+
+<div class="container">
+    <div class="delete-confirmation">
+        <h2>Delete Category</h2>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        }
+
+        <div class="category-info">
+            <h3>@Model.Name</h3>
+            @if (!string.IsNullOrEmpty(Model.Image))
+            {
+                <img src="@Model.Image" class="category-image" alt="@Model.Name" />
+            }
+        </div>
+
+        <div class="alert @(Model.Recipes.Any() ? "alert-warning" : "alert-info")">
+            @if (Model.Recipes.Any())
+            {
+                <p><strong>Warning!</strong> This category contains @Model.Recipes.Count recipe(s).</p>
+                <p>You must move or delete these recipes before deleting the category.</p>
+            }
+            else
+            {
+                <p>This category has no recipes and can be safely deleted.</p>
+            }
+        </div>
+
+        @if (Model.Recipes.Any())
+        {
+            <div class="recipe-list">
+                @foreach (var recipe in Model.Recipes)
+                {
+                    <div class="recipe-item">
+                        <span>@recipe.Title</span>
+                        <a asp-controller="Recipes" asp-action="Edit" asp-route-id="@recipe.Id"
+                           class="btn btn-sm btn-outline-primary">Edit Recipe</a>
+                    </div>
+                }
+            </div>
+        }
+
+        <form asp-action="DeleteCategory" method="post">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="action-buttons mt-4">
+                @if (!Model.Recipes.Any())
+                {
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-2"></i>Confirm Delete
+                    </button>
+                }
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Categories
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Category/deleteCategory.css" />
+}

@@ -3,8 +3,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WhatsMyRecipe.ViewModels
 {
-    public class CreateRecipeViewModel
+    public class EditRecipeViewModel
     {
+        public int Id { get; set; }
+
         [Required]
         public string Title { get; set; }
 
@@ -20,9 +22,11 @@ namespace WhatsMyRecipe.ViewModels
         [Display(Name = "Category")]
         public int CategoryId { get; set; }
 
-        [Display(Name = "Recipe Image")]
-        public IFormFile RecipeImage { get; set; }
+        [Display(Name = "Change Photo")]
+        public IFormFile? NewImage { get; set; }
 
-        public IEnumerable<SelectListItem> Categories { get; set; }
+        public string CurrentImagePath { get; set; }
+
+        public SelectList Categories { get; set; }
     }
 }

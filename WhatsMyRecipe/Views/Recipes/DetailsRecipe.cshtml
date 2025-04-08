@@ -1,0 +1,77 @@
+﻿@model WhatsMyRecipe.ViewModels.RecipeDetailsViewModel
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/Recipes/detailsRecipe.css" />
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="recipe-title">@Model.Title</h1>
+        <div class="recipe-actions">
+            <a asp-action="EditRecipe" asp-route-id="@Model.Id" class="btn btn-outline-primary me-2">
+                <i class="fas fa-edit me-2"></i>Edit
+            </a>
+            <a asp-action="DeleteRecipe" asp-route-id="@Model.Id" class="btn btn-outline-danger">
+                <i class="fas fa-trash me-2"></i>Delete
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-4 recipe-card">
+        <div class="card-body">
+            @if (!string.IsNullOrEmpty(Model.Image))
+            {
+                <div class="text-center mb-4 recipe-image-container">
+                    <img src="@Model.Image" alt="@Model.Title" class="img-fluid rounded recipe-image">
+                </div>
+            }
+
+            <div class="mb-4 category-badge">
+                <span class="badge bg-primary">@Model.CategoryName</span>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="mb-4 recipe-description">
+                    <h3>About This Recipe</h3>
+                    <p class="lead">@Model.Description</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4 ingredients-card">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0"><i class="fas fa-list-ul me-2"></i>Ingredients</h3>
+                </div>
+                <div class="card-body">
+                    <div class="formatted-content">@Html.Raw(Model.FormattedIngredients)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4 instructions-card">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0"><i class="fas fa-list-ol me-2"></i>Instructions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="formatted-content">@Html.Raw(Model.FormattedInstructions)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-controller="Recipes" asp-action="Index" asp-route-categoryId="@Model.CategoryId"
+           class="btn btn-outline-secondary back-button">
+            <i class="fas fa-arrow-left me-2"></i>Back to @Model.CategoryName Recipes
+        </a>
+    </div>
+</div>

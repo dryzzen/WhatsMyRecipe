@@ -1,19 +1,21 @@
-﻿@model WhatsMyRecipe.ViewModels.CreateRecipeViewModel
+﻿@model WhatsMyRecipe.ViewModels.EditRecipeViewModel
 
 @{
-    ViewData["Title"] = "Create Recipe";
+    ViewData["Title"] = "Edit Recipe";
 }
 
 @section Head {
-    <link rel="stylesheet" href="~/css/Recipes/createRecipe.css" />
+    <link rel="stylesheet" href="~/css/Recipes/editRecipe.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 }
 
 <div class="container mt-4">
     <h1>@ViewData["Title"]</h1>
 
-    <form asp-action="CreateRecipe" method="post" enctype="multipart/form-data" class="mt-4">
+    <form asp-action="EditRecipe" method="post" enctype="multipart/form-data" class="mt-4">
         @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
         <div class="row">
@@ -22,13 +24,13 @@
                     <div class="card-body">
                         <div class="form-group mb-3">
                             <label asp-for="Title" class="form-label"></label>
-                            <input asp-for="Title" class="form-control" placeholder="Enter recipe title" />
+                            <input asp-for="Title" class="form-control" placeholder="Recipe title" />
                             <span asp-validation-for="Title" class="text-danger"></span>
                         </div>
 
                         <div class="form-group mb-3">
                             <label asp-for="Description" class="form-label"></label>
-                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Brief description of your recipe"></textarea>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Describe your recipe"></textarea>
                             <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
                     </div>
@@ -38,9 +40,8 @@
                     <div class="card-body">
                         <div class="form-group mb-3">
                             <label asp-for="Ingredients" class="form-label"></label>
-                            <textarea asp-for="Ingredients" class="form-control" rows="8" placeholder="1 cup flour&#10;2 eggs&#10;1 tsp salt"></textarea>
+                            <textarea asp-for="Ingredients" class="form-control" rows="8" placeholder="List ingredients line by line"></textarea>
                             <span asp-validation-for="Ingredients" class="text-danger"></span>
-                            <small class="text-muted">Enter each ingredient on a new line</small>
                         </div>
                     </div>
                 </div>
@@ -49,9 +50,8 @@
                     <div class="card-body">
                         <div class="form-group mb-3">
                             <label asp-for="Instructions" class="form-label"></label>
-                            <textarea asp-for="Instructions" class="form-control" rows="8" placeholder="1. Mix dry ingredients&#10;2. Add wet ingredients&#10;3. Bake at 350°F for 30 minutes"></textarea>
+                            <textarea asp-for="Instructions" class="form-control" rows="8" placeholder="Step-by-step instructions"></textarea>
                             <span asp-validation-for="Instructions" class="text-danger"></span>
-                            <small class="text-muted">Enter each step on a new line</small>
                         </div>
                     </div>
                 </div>
@@ -69,19 +69,31 @@
                         </div>
 
                         <div class="form-group mb-3">
-                            <label asp-for="RecipeImage" class="form-label"></label>
-                            <input asp-for="RecipeImage" class="form-control" type="file" accept="image/*" />
-                            <span asp-validation-for="RecipeImage" class="text-danger"></span>
-                            <small class="text-muted">Upload a high-quality image of your dish</small>
+                            <label class="form-label">Current Image</label>
+                            @if (!string.IsNullOrEmpty(Model.CurrentImagePath))
+                            {
+                                <div class="mb-3">
+                                    <img src="@Model.CurrentImagePath" class="img-thumbnail current-image" />
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No image currently set</p>
+                            }
+
+                            <label asp-for="NewImage" class="form-label">Change Image</label>
+                            <input asp-for="NewImage" class="form-control" type="file" accept="image/*" />
+                            <span asp-validation-for="NewImage" class="text-danger"></span>
+                            <small class="text-muted">Leave blank to keep current image</small>
                         </div>
                     </div>
                 </div>
 
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-plus-circle me-2"></i>Create Recipe
+                        <i class="fas fa-save me-2"></i>Save Changes
                     </button>
-                    <a asp-action="Index" asp-controller="Categories" class="btn btn-outline-secondary">
+                    <a asp-action="DetailsRecipe" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
                         <i class="fas fa-times me-2"></i>Cancel
                     </a>
                 </div>
@@ -94,7 +106,4 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script>
-        // Add any custom JavaScript here if needed
-    </script>
 }

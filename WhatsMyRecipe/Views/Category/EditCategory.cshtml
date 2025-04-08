@@ -1,0 +1,48 @@
+﻿@model WhatsMyRecipe.ViewModels.EditCategoryViewModel
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Category/editCategory.css" />
+}
+
+<div class="container">
+    <div class="edit-category-card">
+        <h2>Edit Category</h2>
+
+        <form asp-action="EditCategory" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-group">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Current Image</label>
+                @if (!string.IsNullOrEmpty(Model.ExistingImagePath))
+                {
+                    <img src="@Model.ExistingImagePath" class="category-image-preview" />
+                }
+                else
+                {
+                    <p class="text-muted">No image set</p>
+                }
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ImageFile" class="form-label"></label>
+                <input asp-for="ImageFile" type="file" class="form-control" />
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
+            </div>
+
+            <div class="alert alert-info">
+                This category contains @Model.RecipeCount recipe(s).
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

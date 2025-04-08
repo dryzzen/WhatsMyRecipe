@@ -8,8 +8,12 @@
         public string Ingredients { get; set; }
         public string Instructions { get; set; }
         public string CategoryName { get; set; }
-        public string? ImagePath { get; set; }
-        public string? FormattedIngredients { get; set; }
-        public string? FormattedInstructions { get; set; }
+
+        public int CategoryId { get; set; }
+
+        public string? Image { get; set; }
+        public string FormattedIngredients => Ingredients?.Replace("\n", "<br/>");
+        public string FormattedInstructions => Instructions?.Replace("\n", "<br/>");
+
     }
 }

@@ -1,0 +1,95 @@
+﻿@page
+@model RegisterModel
+
+@section Head {
+    <link rel="stylesheet" href="~/css/authorization.css" />
+}
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1><i class="fas fa-user-plus"></i> @ViewData["Title"]</h1>
+            <p class="auth-subtitle">Create your account to get started</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6">
+                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="auth-form">
+                    <h2>Create a new account</h2>
+                    <hr class="auth-hr" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="form-group">
+                        <label asp-for="Input.Email" class="form-label">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="Enter your email" />
+                        </div>
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Input.Password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Create a password" />
+                        </div>
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Input.ConfirmPassword" class="form-label">Confirm Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Confirm your password" />
+                        </div>
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                    </div>
+
+                    <button id="registerSubmit" type="submit" class="btn btn-primary w-100 auth-btn">
+                        <i class="fas fa-user-plus me-2"></i>Register
+                    </button>
+
+                    <div class="auth-links">
+                        <p>Already have an account? <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Log in</a></p>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-lg-6 auth-external">
+                <div class="auth-divider">
+                    <span>OR SIGN UP WITH</span>
+                </div>
+
+                @if ((Model.ExternalLogins?.Count ?? 0) == 0)
+                {
+                    <div class="auth-info-box">
+                        <i class="fas fa-info-circle"></i>
+                        <p>
+                            No external logins configured. See
+                            <a href="https://go.microsoft.com/fwlink/?LinkID=532715">this article</a>
+                            about setting up external authentication.
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                        <div class="external-providers">
+                            @foreach (var provider in Model.ExternalLogins!)
+                            {
+                                <button type="submit" class="btn btn-outline-primary" name="provider" value="@provider.Name">
+                                    <i class="fab fa-@provider.DisplayName.ToLower() me-2"></i>@provider.DisplayName
+                                </button>
+                            }
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

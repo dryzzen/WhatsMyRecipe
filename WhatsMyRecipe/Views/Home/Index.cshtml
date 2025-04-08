@@ -1,8 +1,127 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "WhatsMyRecipe - Your Culinary Companion";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@section Head {
+    <link rel="stylesheet" href="~/css/HomeIndex.css" />
+}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-content text-center">
+            <h1 class="hero-title">Discover & Share Amazing Recipes</h1>
+            <p class="hero-subtitle">Your personal cookbook for every occasion</p>
+            <div class="hero-buttons d-flex justify-content-center gap-3">
+                <a asp-controller="Category" asp-action="Index" class="btn btn-primary btn-lg">
+                    <i class="fas fa-book-open me-2"></i>Browse Recipes
+                </a>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <a asp-controller="Recipes" asp-action="CreateRecipe" class="btn btn-dark btn-lg">
+                        <i class="fas fa-plus-circle me-2"></i>Add Your Recipe
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Grid -->
+<section class="features-section py-5 bg-light">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">Why Choose WhatsMyRecipe?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card h-100 p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-book fa-2x"></i>
+                    </div>
+                    <h3 class="h4 mb-3">Recipe Collection</h3>
+                    <p class="mb-0">Organize all your favorite recipes in one place, categorized for easy access anytime.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card h-100 p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-utensils fa-2x"></i>
+                    </div>
+                    <h3 class="h4 mb-3">Meal Planning</h3>
+                    <p class="mb-0">Plan your weekly meals and generate shopping lists automatically (coming soon!).</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card h-100 p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-share-alt fa-2x"></i>
+                    </div>
+                    <h3 class="h4 mb-3">Share & Connect</h3>
+                    <p class="mb-0">Share your culinary creations with friends and family with just one click.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Coming Soon Section -->
+<section class="coming-soon py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h2 class="section-title mb-5">Exciting Features Coming Soon</h2>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="coming-soon-card p-4 h-100">
+                    <div class="badge bg-primary mb-3">NEW</div>
+                    <h3 class="h4 mb-3"><i class="fas fa-calendar-alt me-2"></i>Meal Schedule Planner</h3>
+                    <p>Our upcoming meal scheduling feature will help you plan your entire week of meals, with automatic nutrition calculations and smart suggestions based on your preferences.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="coming-soon-card p-4 h-100">
+                    <div class="badge bg-success mb-3">SOON</div>
+                    <h3 class="h4 mb-3"><i class="fas fa-mobile-alt me-2"></i>Mobile App</h3>
+                    <p>Access your recipes on the go with our upcoming mobile app, featuring offline mode, voice-controlled cooking instructions, and kitchen timer integration.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testimonials py-5 bg-light">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">What Our Community Says</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="testimonial-card p-4 h-100">
+                    <div class="quote-icon mb-3">
+                        <i class="fas fa-quote-left text-muted"></i>
+                    </div>
+                    <p class="mb-4">"This app revolutionized my meal prep! I've saved so much time and discovered new favorite recipes."</p>
+                    <div class="testimonial-author text-end fw-bold">- Sarah, Home Cook</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card p-4 h-100">
+                    <div class="quote-icon mb-3">
+                        <i class="fas fa-quote-left text-muted"></i>
+                    </div>
+                    <p class="mb-4">"As a professional chef, I appreciate how easy it is to organize and access my recipe collection."</p>
+                    <div class="testimonial-author text-end fw-bold">- Michael, Executive Chef</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card p-4 h-100">
+                    <div class="quote-icon mb-3">
+                        <i class="fas fa-quote-left text-muted"></i>
+                    </div>
+                    <p class="mb-4">"The perfect tool for busy parents who want to cook healthy meals without the stress."</p>
+                    <div class="testimonial-author text-end fw-bold">- The Johnson Family</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using WhatsMyRecipe.Data;
 using WhatsMyRecipe.Models;
 using WhatsMyRecipe.ViewModels;
-using Microsoft.EntityFrameworkCore;
+using WhatsMyRecipe.Services;
+
 namespace WhatsMyRecipe.Controllers
 {
     [Authorize]
@@ -18,30 +16,37 @@ namespace WhatsMyRecipe.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IFileService _fileService;
 
-        public RecipesController(ApplicationDbContext context,UserManager<IdentityUser> userManager)
+        public RecipesController(
+            ApplicationDbContext context,
+            UserManager<IdentityUser> userManager,
+            IFileService fileService)
         {
             _context = context;
             _userManager = userManager;
+            _fileService = fileService;
         }
 
-        // GET: Recipes
+        private async Task<SelectList> GetUserCategoriesSelectList()
+        {
+            var userId = _userManager.GetUserId(User);
+            var categories = await _context.Categories
+                .Where(c => !c.IsCustom || c.UserId == userId)
+                .ToListAsync();
+            return new SelectList(categories, "Id", "Name");
+        }
+
         public async Task<IActionResult> Index(int categoryId)
         {
             var userId = _userManager.GetUserId(User);
+            var category = await _context.Categories.FindAsync(categoryId);
+            if (category == null) return NotFound();
 
             var recipes = await _context.Recipes
                 .Where(r => r.CategoryId == categoryId && r.UserId == userId)
                 .Include(r => r.Category)
                 .ToListAsync();
-
-            var category = await _context.Categories
-                .FirstOrDefaultAsync(c => c.Id == categoryId);
-
-            if (category == null)
-            {
-                return NotFound();
-            }
 
             ViewBag.CategoryName = category.Name;
             ViewBag.CategoryImage = category.Image ?? "/images/default-category.jpg";
@@ -49,19 +54,18 @@ namespace WhatsMyRecipe.Controllers
             return View(recipes);
         }
 
-        // GET: Recipes/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> DetailsRecipe(int? id)
         {
             if (id == null) return NotFound();
 
             var recipe = await _context.Recipes
                 .Include(r => r.Category)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(r => r.Id == id);
 
-            if (recipe == null) return NotFound();
-            if (recipe.UserId != _userManager.GetUserId(User)) return Forbid();
+            if (recipe == null || recipe.UserId != _userManager.GetUserId(User))
+                return NotFound();
 
-            var model = new RecipeDetailsViewModel
+            return View(new RecipeDetailsViewModel
             {
                 Id = recipe.Id,
                 Title = recipe.Title,
@@ -69,52 +73,28 @@ namespace WhatsMyRecipe.Controllers
                 Ingredients = recipe.Ingredients,
                 Instructions = recipe.Instructions,
                 CategoryName = recipe.Category?.Name ?? "Uncategorized",
-                ImagePath = recipe.Image,
-                FormattedIngredients = FormatText(recipe.Ingredients),
-                FormattedInstructions = FormatText(recipe.Instructions)
-            };
-
-            return View(model);
+                CategoryId = recipe.CategoryId,
+                Image = recipe.Image
+            });
         }
-
-        private string FormatText(string input)
-        {
-            // Add your formatting logic here (e.g., replace commas with line breaks)
-            return input;
-        }
-
-
 
         [HttpGet]
         public async Task<IActionResult> CreateRecipe()
         {
-            var userId = _userManager.GetUserId(User);
-            var categories = await _context.Categories
-                .Where(c => !c.IsCustom || c.UserId == userId)
-                .ToListAsync();
-
-            var model = new CreateRecipeViewModel
+            return View(new CreateRecipeViewModel
             {
-                Categories = new SelectList(categories, "Id", "Name")
-            };
-
-            return View(model);
+                Categories = await GetUserCategoriesSelectList()
+            });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateRecipe(CreateRecipeViewModel model)
         {
-            var userId = _userManager.GetUserId(User);
-            var categories = await _context.Categories
-                .Where(c => !c.IsCustom || c.UserId == userId)
-                .ToListAsync();
-            model.Categories = new SelectList(categories, "Id", "Name");
+            model.Categories = await GetUserCategoriesSelectList();
+            ModelState.Remove("Categories");
 
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+            if (!ModelState.IsValid) return View(model);
 
             var recipe = new Recipe
             {
@@ -123,170 +103,120 @@ namespace WhatsMyRecipe.Controllers
                 Ingredients = model.Ingredients,
                 Instructions = model.Instructions,
                 CategoryId = model.CategoryId,
-                UserId = userId,
+                UserId = _userManager.GetUserId(User)
             };
 
-            // Handle image upload
             if (model.RecipeImage != null)
             {
                 try
                 {
-                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-                    var fileExtension = Path.GetExtension(model.RecipeImage.FileName).ToLower();
-
-                    if (!allowedExtensions.Contains(fileExtension))
-                    {
-                        ModelState.AddModelError("RecipeImage", "Only JPG, PNG or GIF images are allowed");
-                        return View(model);
-                    }
-
-                    var uploadsFolder = Path.Combine("wwwroot", "images", "recipes");
-                    Directory.CreateDirectory(uploadsFolder);
-
-                    var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                    var filePath = Path.Combine(uploadsFolder, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await model.RecipeImage.CopyToAsync(stream);
-                    }
-
-                    recipe.Image = $"/images/recipes/{fileName}";
+                    recipe.Image = _fileService.UploadImage(model.RecipeImage, "recipes");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Image upload failed: {ex.Message}");
-                    ModelState.AddModelError("RecipeImage", "Error uploading image");
+                    ModelState.AddModelError("RecipeImage", ex.Message);
                     return View(model);
                 }
             }
 
-            try
-            {
-                _context.Recipes.Add(recipe);
-                await _context.SaveChangesAsync();
+            _context.Recipes.Add(recipe);
+            await _context.SaveChangesAsync();
 
-                return RedirectToAction("Index", "Recipes", new { categoryId = recipe.CategoryId });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error saving recipe: {ex.Message}");
-                ModelState.AddModelError("", "An error occurred while saving the recipe.");
-                return View(model);
-            }
+            return RedirectToAction("DetailsRecipe", new { id = recipe.Id });
         }
 
-
-
-        // GET: Recipes/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        [HttpGet]
+        public async Task<IActionResult> EditRecipe(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var recipe = await _context.Recipes.FindAsync(id);
-            if (recipe == null)
-            {
+            if (recipe == null || recipe.UserId != _userManager.GetUserId(User))
                 return NotFound();
-            }
-            return View(recipe);
+
+            return View(new EditRecipeViewModel
+            {
+                Id = recipe.Id,
+                Title = recipe.Title,
+                Description = recipe.Description,
+                Ingredients = recipe.Ingredients,
+                Instructions = recipe.Instructions,
+                CategoryId = recipe.CategoryId,
+                CurrentImagePath = recipe.Image,
+                Categories = await GetUserCategoriesSelectList()
+            });
         }
 
-        
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,Ingredients,Instructions,Category,Image,UserId")] Recipe recipe)
+        public async Task<IActionResult> EditRecipe(EditRecipeViewModel model)
         {
-            if (id != recipe.Id)
-            {
-                return NotFound();
-            }
+            model.Categories = await GetUserCategoriesSelectList();
+            ModelState.Remove("Categories");
+            ModelState.Remove("CurrentImagePath");
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid) return View(model);
+
+            var recipe = await _context.Recipes.FindAsync(model.Id);
+            if (recipe == null) return NotFound();
+
+            recipe.Title = model.Title;
+            recipe.Description = model.Description;
+            recipe.Ingredients = model.Ingredients;
+            recipe.Instructions = model.Instructions;
+            recipe.CategoryId = model.CategoryId;
+
+            if (model.NewImage != null)
             {
                 try
                 {
-                    _context.Update(recipe);
-                    await _context.SaveChangesAsync();
+                    if (!string.IsNullOrEmpty(recipe.Image))
+                        _fileService.DeleteImage(recipe.Image);
+
+                    recipe.Image = _fileService.UploadImage(model.NewImage, "recipes");
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception ex)
                 {
-                    if (!RecipeExists(recipe.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    ModelState.AddModelError("NewImage", ex.Message);
+                    return View(model);
                 }
-                return RedirectToAction(nameof(Index));
             }
-            return View(recipe);
+
+            _context.Update(recipe);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("DetailsRecipe", new { id = recipe.Id });
         }
 
-        // GET: Recipes/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        [HttpGet]
+        public async Task<IActionResult> DeleteRecipe(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var recipe = await _context.Recipes
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (recipe == null)
-            {
+                .Include(r => r.Category)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null || recipe.UserId != _userManager.GetUserId(User))
                 return NotFound();
-            }
 
             return View(recipe);
         }
 
-        [HttpPost, ActionName("Delete")]
+        [HttpPost, ActionName("DeleteRecipe")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteRecipeConfirmed(int id)
         {
             var recipe = await _context.Recipes.FindAsync(id);
-            if (recipe != null)
-            {
-                _context.Recipes.Remove(recipe);
-            }
+            if (recipe == null) return NotFound();
 
+            if (!string.IsNullOrEmpty(recipe.Image))
+                _fileService.DeleteImage(recipe.Image);
+
+            _context.Recipes.Remove(recipe);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return RedirectToAction("Index", "Recipes", new { categoryId = recipe.CategoryId });
         }
-
-        private bool RecipeExists(int id)
-        {
-            return _context.Recipes.Any(e => e.Id == id);
-        }
-
-
-        private async Task<string?> HandleImageUpload(IFormFile? imageFile)
-        {
-            if (imageFile == null || imageFile.Length == 0)
-                return null;
-
-            var uploadsFolder = Path.Combine("wwwroot", "images", "categories");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-
-            var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await imageFile.CopyToAsync(fileStream);
-            }
-
-            return "/images/categories/" + uniqueFileName;
-        }
-
     }
-
-
-
 }

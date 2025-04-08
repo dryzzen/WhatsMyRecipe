@@ -1,34 +1,75 @@
-﻿@model IEnumerable<Category>
+﻿@model IEnumerable<WhatsMyRecipe.ViewModels.CategoryViewModel>
 
-<h1>Recipe Categories</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/Category/dashboardCategory.css" />
+}
 
-<div class="category-container">
-    @foreach (var category in Model)
-    {
-        <div class="category-card">
-            <a asp-controller="Recipes" asp-action="Index" asp-route-categoryId="@category.Id">
-                @if (!string.IsNullOrEmpty(category.Image))
+<div class="container">
+    <h1 class="text-center my-4">Recipe Categories</h1>
+
+    <div class="category-container">
+        @foreach (var category in Model)
+        {
+            <div class="category-card-wrapper">
+                <a asp-controller="Recipes" asp-action="Index" asp-route-categoryId="@category.Id"
+                   class="category-card" title="View @category.Name recipes">
+                    @if (!string.IsNullOrEmpty(category.Image))
+                    {
+                        <div class="category-image">
+                            <img src="@category.Image" alt="@category.Name" loading="lazy" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="category-image default-image">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                    }
+                    <h3>@category.Name</h3>
+                    <div class="recipe-count-badge">
+                        <span class="badge bg-secondary">@category.RecipeCount recipes</span>
+                    </div>
+                </a>
+
+                @if (ViewBag.IsAuthenticated && category.IsCustom && category.IsOwner)
                 {
-                    <img src="@category.Image" alt="@category.Name" class="category-image" />
-                }
-                else
-                {
-                    <div class="category-placeholder">
-                        <span>@category.Name.First()</span>
+                    <div class="category-actions">
+                        <a asp-action="EditCategory" asp-route-id="@category.Id"
+                           class="btn btn-sm btn-edit" title="Edit category">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a asp-action="DeleteCategory" asp-route-id="@category.Id"
+                           class="btn btn-sm btn-delete" title="Delete category">
+                            <i class="fas fa-trash"></i>
+                        </a>
                     </div>
                 }
-                <h3>@category.Name</h3>
-                @if (category.IsCustom)
-                {
-                    <small class="custom-badge">Custom</small>
-                }
-            </a>
+            </div>
+        }
+    </div>
+
+    @if (ViewBag.IsAuthenticated)
+    {
+        <div class="add-category mt-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title text-primary">
+                        <i class="fas fa-plus-circle me-2"></i>Add Custom Category
+                    </h4>
+                    <form asp-action="CreateCategory" method="post" class="mt-3">
+                        <div class="input-group">
+                            <input type="text" name="categoryName" class="form-control"
+                                   placeholder="Enter category name" required />
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-check me-1"></i>Create
+                            </button>
+                        </div>
+                        <small class="text-muted mt-2 d-block">
+                            Custom categories are only visible to you
+                        </small>
+                    </form>
+                </div>
+            </div>
         </div>
     }
-</div>
-
-<div class="text-center mt-4">
-    <a asp-action="CreateCategory" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Add New Category
-    </a>
 </div>
