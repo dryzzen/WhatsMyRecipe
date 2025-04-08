@@ -1,6 +1,5 @@
 # WhatsMyRecipe 🍳
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A modern recipe management application that helps you organize, create, and share your favorite culinary creations with beautiful visuals and intuitive controls.
 
